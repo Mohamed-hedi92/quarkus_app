@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Mohamed-hedi92/quarkus_app.git'
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                script {
+                    docker.image('quay.io/quarkus/ubi-quarkus-native:20.2.0-java11').inside {
+                        sh './mvnw package -DskipTests'
+                    }
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('your-docker-image:latest', '-f src/main/docker/Dockerfile.native .')
+                }
+            }
+        }
+        
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://your-docker-registry.com', 'docker-registry-credentials-id') {
+                        docker.image('your-docker-image:latest').push('latest')
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

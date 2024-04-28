@@ -35,26 +35,46 @@ import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
                     .map(movie -> Response.ok(movie).build())
               .orElse(Response.status(NOT_FOUND).build());
         }
+            @PUT
+            @Path("{id}")
+            @Transactional
 
+            public Response updateById(@PathParam("id") Long id, Movie movie) {
+                return movieRepository
+                        .find("id",id)
+                        .singleResultOptional()
+                        .map(
+                                m -> {
+                                    if (movie.getTitle() != null) {
+                                        m.setTitle(movie.getTitle());
+                                    }
+                                    if (movie.getCategory() != null) {
+                                        m.setCategory(movie.getCategory());
+                                    }
+
+                                    return Response.ok(m).build();
+                                })
+                        .orElse(Response.status(NOT_FOUND).build());
+            }
 
     //method to fetch the movie by Title
-        @GET
-        @Path("title/{title}")
-        public Response getByTitle(@PathParam("title") String title){
-            return movieRepository.find("title",title)
-                    .singleResultOptional()
-                    .map(movie-> Response.ok(movie).build())
-                    .orElse(Response.status(NOT_FOUND).build());
-        }
+
+            @GET
+            @Path("title/{title}")
+            public Response getByTitle(@PathParam("title") String title){
+                return movieRepository.find("title",title)
+                        .singleResultOptional()
+                        .map(movie-> Response.ok(movie).build())
+                        .orElse(Response.status(NOT_FOUND).build());
+            }
 
         // fetch movies by category
         @GET
         @Path("category/{category}")
         public Response getByCategory(@PathParam("category") String category){
-            return movieRepository.find("category",category)
-                    .singleResultOptional()
-                    .map(movie-> Response.ok(movie).build())
-                    .orElse(Response.status(NOT_FOUND).build());
+            List<Movie> movies= movieRepository.list("category",category);
+            return Response.ok(movies).build();
+
         }
 
         // method to create new movie
